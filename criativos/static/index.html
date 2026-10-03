@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fluxo de Criativos</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #f4f4f6; --panel: #ffffff; --line: #e2e2e8; --tx: #1d1d24; --mut: #6b6b78;
+    --canvas: #eceef2; --dot: #cfd2da; --edge: #b9bcc6;
+    --run: #2f6fec; --ok: #1f9d55; --err: #d93636; --skip: #9a9aa6; --accent: #ff6d5a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .06), 0 4px 16px rgb(0 0 0 / .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171c; --panel: #212128; --line: #33333d; --tx: #ececf1; --mut: #9a9aa8;
+      --canvas: #1b1b21; --dot: #2e2e37; --edge: #4a4a56;
+      --run: #5b8ef5; --ok: #3cc47c; --err: #f06262; --skip: #6d6d7a;
+      --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 16px rgb(0 0 0 / .3);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--tx); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+
+  .app { display: grid; grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: 52px 1fr; height: 100vh; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; }
+  header .logo { width: 22px; height: 22px; border-radius: 6px; background: var(--accent); display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; }
+  header .titulo-exec { color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+  aside { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mut); margin: 0 0 8px; }
+  label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  label small { font-weight: 400; color: var(--mut); }
+  textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
+  textarea:focus { outline: 2px solid var(--run); outline-offset: -1px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { flex: 1; border: 0; background: transparent; padding: 6px 0; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--tx); color: var(--panel); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+  .chip.on { border-color: var(--run); background: color-mix(in srgb, var(--run) 12%, transparent); }
+  .chip:disabled { opacity: .45; cursor: not-allowed; text-decoration: line-through; }
+  .toggle { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-weight: 400; cursor: pointer; }
+  .executar { width: 100%; margin-top: 16px; padding: 10px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .executar:disabled { opacity: .6; cursor: progress; }
+  .msg { color: var(--err); margin: 8px 0 0; min-height: 1em; }
+
+  .hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .hist button { width: 100%; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 8px; padding: 8px; cursor: pointer; }
+  .hist button:hover { background: var(--bg); }
+  .hist button.on { border-color: var(--line); background: var(--bg); }
+  .hist .t { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist .m { display: flex; align-items: center; gap: 6px; color: var(--mut); font-size: 12px; margin-top: 2px; }
+  .dots { display: inline-flex; gap: 3px; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+  .vazio { color: var(--mut); }
+
+  main { position: relative; overflow: auto; min-width: 0; background-color: var(--canvas); background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 20px 20px; }
+  .fluxo { position: relative; min-width: 940px; min-height: 100%; display: flex; align-items: center; justify-content: safe center; gap: 64px; padding: 40px; }
+  .col { display: flex; flex-direction: column; gap: 22px; position: relative; z-index: 1; }
+  svg.arestas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  svg.arestas path { fill: none; stroke: var(--edge); stroke-width: 2; }
+  svg.arestas path.ok { stroke: var(--ok); }
+  svg.arestas path.erro { stroke: var(--err); stroke-dasharray: 4 4; }
+  svg.arestas path.rodando { stroke: var(--run); stroke-dasharray: 6 6; animation: fluir .6s linear infinite; }
+  @keyframes fluir { to { stroke-dashoffset: -12; } }
+
+  .no { width: 200px; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); cursor: pointer; text-align: left; transition: border-color .2s, transform .1s; }
+  .no:hover { transform: translateY(-1px); }
+  .no.sel { outline: 2px solid var(--tx); outline-offset: 2px; }
+  .no .topo { display: flex; align-items: center; gap: 10px; }
+  .no .ic { flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; }
+  .no .nome { font-weight: 600; }
+  .no .sub { color: var(--mut); font-size: 12px; }
+  .no .rodape { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: var(--mut); }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .no.rodando { border-color: var(--run); animation: pulsar 1.4s ease-in-out infinite; }
+  .no.ok { border-color: var(--ok); }
+  .no.erro { border-color: var(--err); }
+  .no.pulado { border-style: dashed; opacity: .65; }
+  @keyframes pulsar { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--run) 18%, transparent), var(--shadow); } }
+  .s-aguardando { color: var(--skip); } .s-rodando { color: var(--run); } .s-ok { color: var(--ok); } .s-erro { color: var(--err); } .s-pulado { color: var(--skip); }
+  .no .thumb { margin-top: 8px; border-radius: 8px; overflow: hidden; background: var(--bg); }
+  .no .thumb img, .no .thumb video { display: block; width: 100%; max-height: 120px; object-fit: cover; }
+
+  .gaveta { position: fixed; top: 52px; right: 0; bottom: 0; width: min(440px, 100vw); background: var(--panel); border-left: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(100%); transition: transform .2s; overflow-y: auto; z-index: 5; padding: 16px; }
+  .gaveta.aberta { transform: none; }
+  @media (min-width: 1100px) { body.com-gaveta main { margin-right: min(440px, 100vw); } }
+  .gaveta .cab { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .gaveta .cab h3 { margin: 0; flex: 1; font-size: 16px; }
+  .fechar { border: 0; background: transparent; font-size: 20px; cursor: pointer; color: var(--mut); }
+  .gaveta dl { margin: 0; }
+  .gaveta dt { font-weight: 600; margin-top: 12px; color: var(--mut); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .gaveta dd { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+  .gaveta pre { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 10px; margin: 4px 0 0; font: 12.5px/1.5 ui-monospace, monospace; }
+  .gaveta img, .gaveta video { width: 100%; border-radius: 8px; display: block; }
+  .gaveta .moldura { overflow: hidden; border-radius: 8px; border: 1px solid var(--line); }
+  .gaveta iframe { border: 0; transform-origin: 0 0; }
+  .acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .btn { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 12px; cursor: pointer; text-decoration: none; color: inherit; }
+  .btn.prim { background: var(--tx); color: var(--panel); border-color: var(--tx); }
+  .erro-box { background: color-mix(in srgb, var(--err) 10%, transparent); color: var(--err); border-radius: 8px; padding: 10px; white-space: pre-wrap; word-break: break-word; }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 52px auto 70vh; height: auto; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="logo">C</span>Fluxo de Criativos</h1>
+    <span class="titulo-exec" id="tituloExec"></span>
+  </header>
+
+  <aside>
+    <form id="form">
+      <h2>Nova execução</h2>
+      <label for="ideia">Ideia do criativo</label>
+      <textarea id="ideia" rows="4" placeholder="Ex.: Promoção de café gelado para o verão, clima de praia" required></textarea>
+      <label for="contexto">Contexto <small>(opcional)</small></label>
+      <textarea id="contexto" rows="2" placeholder="Marca, produto, público, tom de voz..."></textarea>
+      <label>Formato</label>
+      <div class="seg" id="formatos"></div>
+      <label>IAs</label>
+      <div class="chips" id="ias"></div>
+      <label class="toggle"><input type="checkbox" id="diretor" checked> Opus 5.5 como diretor criativo</label>
+      <button class="executar" id="executar" type="submit">▶ Executar fluxo</button>
+      <p class="msg" id="msg"></p>
+    </form>
+    <section>
+      <h2>Execuções</h2>
+      <ul class="hist" id="hist"><li class="vazio">Nenhuma ainda.</li></ul>
+    </section>
+  </aside>
+
+  <main id="canvas">
+    <div class="fluxo" id="fluxo">
+      <svg class="arestas" id="arestas"></svg>
+      <div class="col" data-col="0"></div>
+      <div class="col" data-col="1"></div>
+      <div class="col" data-col="2"></div>
+      <div class="col" data-col="3"></div>
+    </div>
+  </main>
+</div>
+
+<div class="gaveta" id="gaveta"></div>
+
+<script>
+const NOS = {
+  ideia:   { nome: "Ideia",        sub: "Entrada",              cor: "#ff6d5a", ic: "✎",  col: 0 },
+  diretor: { nome: "Diretor",      sub: "Opus 5.5 · briefing",  cor: "#c96442", ic: "★",  col: 1 },
+  chatgpt: { nome: "ChatGPT",      sub: "Imagem",               cor: "#10a37f", ic: "G",  col: 2 },
+  gemini:  { nome: "Gemini",       sub: "Imagem",               cor: "#4b7bec", ic: "◆",  col: 2 },
+  flow:    { nome: "Flow · Veo",   sub: "Vídeo ~8s",            cor: "#8e44ad", ic: "▶",  col: 2 },
+  opus:    { nome: "Opus 5.5",     sub: "Peça em HTML",         cor: "#d97757", ic: "A",  col: 2 },
+  galeria: { nome: "Galeria",      sub: "Comparação final",     cor: "#3d3d4a", ic: "▦",  col: 3 },
+};
+const IAS = ["chatgpt", "gemini", "flow", "opus"];
+const ROTULO = { aguardando: "Aguardando", rodando: "Rodando", ok: "Pronto", erro: "Erro", pulado: "Pulado" };
+const DIM = { "1:1": [1080, 1080], "4:5": [1080, 1350], "9:16": [1080, 1920], "16:9": [1920, 1080] };
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const arq = (id, nome) => `/arquivos/${encodeURIComponent(id)}/${encodeURIComponent(nome)}`;
+
+let cfg = null, atual = null, noSel = null, formato = "1:1", desvio = 0, timerPoll = null;
+const iasOn = new Set(IAS);
+
+async function api(caminho, opcoes) {
+  const r = await fetch(caminho, opcoes);
+  const dados = await r.json();
+  if (!r.ok) throw new Error(dados.erro || r.statusText);
+  return dados;
+}
+
+// ---------- formulário ----------
+function montarForm() {
+  $("#formatos").innerHTML = cfg.formatos.map((f) => `<button type="button" data-f="${f}" class="${f === formato ? "on" : ""}">${f}</button>`).join("");
+  $("#ias").innerHTML = IAS.map((n) => {
+    const ok = cfg.ias[n];
+    if (!ok) iasOn.delete(n);
+    return `<button type="button" class="chip ${iasOn.has(n) ? "on" : ""}" data-ia="${n}" ${ok ? "" : 'disabled title="Sem chave de API no .env"'}>${NOS[n].nome}</button>`;
+  }).join("");
+  const dir = $("#diretor");
+  if (!cfg.diretor) { dir.checked = false; dir.disabled = true; dir.parentElement.title = "Sem ANTHROPIC_API_KEY no .env"; }
+}
+$("#formatos").addEventListener("click", (e) => {
+  const f = e.target.dataset.f; if (!f) return;
+  formato = f; montarForm();
+});
+$("#ias").addEventListener("click", (e) => {
+  const n = e.target.dataset.ia; if (!n || e.target.disabled) return;
+  iasOn.has(n) ? iasOn.delete(n) : iasOn.add(n); montarForm(); if (!atual) render();
+});
+$("#form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("#msg").textContent = "";
+  if (!iasOn.size) { $("#msg").textContent = "Escolha pelo menos uma IA."; return; }
+  const botao = $("#executar"); botao.disabled = true;
+  try {
+    const exec = await api("/api/execucoes", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ideia: $("#ideia").value, contexto: $("#contexto").value, formato, ias: IAS.filter((n) => iasOn.has(n)), diretor: $("#diretor").checked }),
+    });
+    $("#ideia").value = "";
+    selecionar(exec.id, exec);
+    carregarHistorico();
+  } catch (err) { $("#msg").textContent = err.message; }
+  finally { botao.disabled = false; }
+});
+
+// ---------- histórico ----------
+async function carregarHistorico() {
+  const lista = await api("/api/execucoes");
+  $("#hist").innerHTML = lista.length ? lista.map((x) => {
+    const pontos = x.ias.map((n) => `<i style="background:var(--${{ ok: "ok", erro: "err", rodando: "run" }[x.nos[n].status] || "line"})"></i>`).join("");
+    const data = x.criado_em.slice(8, 10) + "/" + x.criado_em.slice(5, 7) + " " + x.criado_em.slice(11, 16);
+    return `<li><button data-id="${esc(x.id)}" class="${atual && atual.id === x.id ? "on" : ""}"><span class="t">${esc(x.ideia)}</span><span class="m"><span class="dots">${pontos}</span>${data}${x.ativa ? " · rodando" : ""}</span></button></li>`;
+  }).join("") : '<li class="vazio">Nenhuma ainda.</li>';
+  return lista;
+}
+$("#hist").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-id]"); if (b) selecionar(b.dataset.id);
+});
+
+// ---------- execução selecionada ----------
+async function selecionar(id, dados) {
+  location.hash = id;
+  noSel = null; fecharGaveta();
+  atual = dados || await api(`/api/execucoes/${encodeURIComponent(id)}`);
+  render();
+  carregarHistorico();
+  agendarPoll();
+}
+
+function agendarPoll() {
+  clearTimeout(timerPoll);
+  if (!atual || !atual.ativa) return;
+  timerPoll = setTimeout(async () => {
+    try {
+      atual = await api(`/api/execucoes/${encodeURIComponent(atual.id)}`);
+      render();
+      if (!atual.ativa) carregarHistorico();
+    } catch (_) {}
+    agendarPoll();
+  }, 1500);
+}
+
+function tempo(no) {
+  if (!no.inicio) return "";
+  const fim = no.fim || (Date.now() / 1000 + desvio);
+  const s = Math.max(0, Math.round(fim - no.inicio));
+  return s >= 60 ? `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s` : `${s}s`;
+}
+
+function nosVisiveis() {
+  if (!atual) return ["ideia", "diretor", ...IAS.filter((n) => iasOn.has(n)), "galeria"];
+  return ["ideia", "diretor", ...atual.ias, "galeria"];
+}
+
+function estadoNo(nome) {
+  return atual ? atual.nos[nome] : { status: nome === "ideia" ? "ok" : "aguardando" };
+}
+
+function thumb(nome, no) {
+  if (!atual || no.status !== "ok" || !no.arquivo) return "";
+  const src = arq(atual.id, no.arquivo);
+  if (no.arquivo.endsWith(".mp4")) return `<div class="thumb"><video src="${src}" muted loop autoplay playsinline></video></div>`;
+  if (/\.(png|jpe?g|webp)$/.test(no.arquivo)) return `<div class="thumb"><img src="${src}" alt=""></div>`;
+  return "";
+}
+
+function render() {
+  if (atual) desvio = atual.agora - Date.now() / 1000;
+  $("#tituloExec").textContent = atual ? `· ${atual.ideia}` : "";
+  document.querySelectorAll(".col").forEach((c) => (c.innerHTML = ""));
+  for (const nome of nosVisiveis()) {
+    const meta = NOS[nome], no = estadoNo(nome);
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = `no ${no.status} ${noSel === nome ? "sel" : ""}`;
+    el.dataset.no = nome;
+    el.innerHTML = `
+      <div class="topo"><div class="ic" style="background:${meta.cor}">${meta.ic}</div>
+        <div><div class="nome">${meta.nome}</div><div class="sub">${meta.sub}</div></div></div>
+      <div class="rodape"><span class="pill s-${no.status}">${ROTULO[no.status]}</span><span class="tempo" data-no="${nome}">${tempo(no)}</span></div>
+      ${thumb(nome, no)}`;
+    document.querySelector(`.col[data-col="${meta.col}"]`).appendChild(el);
+  }
+  requestAnimationFrame(desenharArestas);
+  if (noSel) abrirGaveta(noSel, true);
+}
+
+function desenharArestas() {
+  const fluxo = $("#fluxo"), base = fluxo.getBoundingClientRect();
+  const pos = (nome) => {
+    const el = fluxo.querySelector(`.no[data-no="${nome}"]`);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { l: r.left - base.left, r: r.right - base.left, y: r.top - base.top + r.height / 2 };
+  };
+  const ias = nosVisiveis().filter((n) => IAS.includes(n));
+  const ligacoes = [["ideia", "diretor"], ...ias.map((n) => ["diretor", n]), ...ias.map((n) => [n, "galeria"])];
+  $("#arestas").innerHTML = ligacoes.map(([a, b]) => {
+    const p = pos(a), q = pos(b); if (!p || !q) return "";
+    const x1 = p.r, x2 = q.l, dx = (x2 - x1) / 2;
+    const st = estadoNo(b).status;
+    const classe = st === "rodando" ? "rodando" : st === "erro" ? "erro" : st === "ok" ? "ok" : "";
+    return `<path class="${classe}" d="M${x1},${p.y} C${x1 + dx},${p.y} ${x2 - dx},${q.y} ${x2},${q.y}"/>`;
+  }).join("");
+}
+
+// relógio dos nós rodando, sem refazer o DOM
+setInterval(() => {
+  if (!atual) return;
+  document.querySelectorAll(".tempo[data-no]").forEach((el) => {
+    const no = atual.nos[el.dataset.no]; if (no && no.status === "rodando") el.textContent = tempo(no);
+  });
+}, 1000);
+
+// ---------- gaveta de detalhes ----------
+$("#fluxo").addEventListener("click", (e) => {
+  const el = e.target.closest(".no"); if (!el) return;
+  noSel = el.dataset.no; render(); abrirGaveta(noSel);
+  setTimeout(() => document.querySelector(`.no[data-no="${noSel}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }), 220);
+});
+
+function campo(rotulo, valor, pre) {
+  if (!valor) return "";
+  return `<dt>${rotulo}</dt><dd>${pre ? `<pre>${esc(valor)}</pre>` : esc(valor)}</dd>`;
+}
+
+function previa(no) {
+  const src = arq(atual.id, no.arquivo);
+  if (no.arquivo.endsWith(".mp4")) return `<video src="${src}" controls loop playsinline></video>`;
+  if (no.arquivo.endsWith(".html")) {
+    const [w, h] = DIM[atual.formato], larg = 406, esc_ = larg / w;
+    return `<div class="moldura" style="height:${Math.round(h * esc_)}px"><iframe src="${src}" style="width:${w}px;height:${h}px;transform:scale(${esc_})"></iframe></div>`;
+  }
+  return `<img src="${src}" alt="">`;
+}
+
+function abrirGaveta(nome, soAtualizar) {
+  const g = $("#gaveta");
+  if (soAtualizar && !g.classList.contains("aberta")) return;
+  // não recarrega vídeo/iframe a cada poll se nada mudou
+  const no = estadoNo(nome);
+  const chave = JSON.stringify([atual && atual.id, nome, no.status, no.arquivo, no.erro, atual && !!atual.briefing, atual && atual.ativa]);
+  if (soAtualizar && g.dataset.chave === chave) {
+    const t = g.querySelector(".tempo-g"); if (t) t.textContent = tempo(no);
+    return;
+  }
+  g.dataset.chave = chave;
+  const meta = NOS[nome], b = atual && atual.briefing;
+  let corpo = "";
+
+  if (!atual) {
+    corpo = `<p class="vazio">Escreva uma ideia ao lado e clique em <b>Executar fluxo</b> para ver este nó em ação.</p>`;
+  } else if (nome === "ideia") {
+    corpo = `<dl>${campo("Ideia", atual.ideia)}${campo("Contexto", atual.contexto)}${campo("Formato", atual.formato)}${campo("Criado em", atual.criado_em.replace("T", " "))}</dl>`;
+  } else if (nome === "diretor") {
+    corpo = b && no.status === "ok"
+      ? `<dl>${campo("Conceito", b.conceito)}${campo("Headline", b.headline)}${campo("Texto de apoio", b.texto_apoio)}${campo("CTA", b.cta)}${campo("Legenda", b.legenda)}</dl>`
+      : `<p class="vazio">${no.status === "rodando" ? "Opus está montando o briefing e os prompts..." : "Sem briefing."}</p>`;
+  } else if (nome === "galeria") {
+    corpo = no.status === "ok"
+      ? `<p>Todas as versões lado a lado, com a copy.</p><div class="acoes"><a class="btn prim" href="${arq(atual.id, "index.html")}" target="_blank">Abrir galeria ↗</a></div>`
+      : `<p class="vazio">A galeria é montada quando todas as IAs terminam.</p>`;
+  } else {
+    const prompt = b && ({ chatgpt: b.prompt_chatgpt, gemini: b.prompt_gemini, flow: b.prompt_flow })[nome];
+    corpo = (no.status === "ok" && no.arquivo ? previa(no) : "")
+      + (no.status === "rodando" ? `<p class="vazio">Gerando${nome === "flow" ? " (vídeo costuma levar de 1 a 5 min)" : ""}...</p>` : "")
+      + (no.erro ? `<div class="erro-box">${esc(no.erro)}</div>` : "")
+      + `<dl>${campo("Prompt usado", prompt, true)}${nome === "opus" && b ? campo("Headline / CTA", [b.headline, b.cta].filter(Boolean).join(" · ")) : ""}</dl>`
+      + `<div class="acoes">`
+      + (no.arquivo && no.status === "ok" ? `<a class="btn prim" href="${arq(atual.id, no.arquivo)}" download>Baixar</a><a class="btn" href="${arq(atual.id, no.arquivo)}" target="_blank">Abrir ↗</a>` : "")
+      + (!atual.ativa && atual.briefing && (no.status === "erro" || no.status === "ok") ? `<button class="btn" data-repetir="${nome}">↻ Rodar de novo</button>` : "")
+      + `</div>`;
+  }
+
+  g.innerHTML = `<div class="cab"><div class="ic" style="width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:700;background:${meta.cor}">${meta.ic}</div>
+    <h3>${meta.nome}</h3><span class="pill s-${no.status}">${ROTULO[no.status]}</span>&nbsp;<span class="tempo-g" style="color:var(--mut)">${tempo(no)}</span>
+    <button class="fechar" aria-label="Fechar">×</button></div>${corpo}`;
+  g.classList.add("aberta");
+  if (!document.body.classList.contains("com-gaveta")) {
+    document.body.classList.add("com-gaveta");
+    requestAnimationFrame(desenharArestas);
+  }
+}
+
+function fecharGaveta() {
+  $("#gaveta").classList.remove("aberta");
+  document.body.classList.remove("com-gaveta");
+  requestAnimationFrame(desenharArestas);
+  if (noSel) { noSel = null; render(); }
+}
+
+$("#gaveta").addEventListener("click", async (e) => {
+  if (e.target.closest(".fechar")) return fecharGaveta();
+  const rep = e.target.closest("[data-repetir]");
+  if (rep) {
+    rep.disabled = true;
+    try {
+      atual = await api(`/api/execucoes/${encodeURIComponent(atual.id)}/repetir/${rep.dataset.repetir}`, { method: "POST" });
+      atual.ativa = true;
+      atual.nos[rep.dataset.repetir].status = "rodando";
+      render(); agendarPoll();
+    } catch (err) { alert(err.message); rep.disabled = false; }
+  }
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharGaveta(); });
+window.addEventListener("resize", () => requestAnimationFrame(desenharArestas));
+
+// ---------- início ----------
+(async () => {
+  cfg = await api("/api/config");
+  montarForm();
+  const lista = await carregarHistorico();
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (id && lista.some((x) => x.id === id)) selecionar(id);
+  else render();
+})();
+</script>
+</body>
+</html>

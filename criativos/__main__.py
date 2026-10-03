@@ -1,24 +1,17 @@
 """Uso:
     python -m criativos "ideia do criativo" [--formato 9:16] [--so chatgpt,gemini] [--contexto "..."]
+    python -m criativos.web            # abre o painel visual no navegador
 """
 
 import argparse
-import json
-import re
 import sys
-import time
-import unicodedata
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
 from pathlib import Path
 
-from . import config, diretor, galeria
+from . import config
+from .pipeline import Execucao
 from .providers import PROVEDORES
 
-
-def _slug(texto: str) -> str:
-    ascii_ = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
-    return re.sub(r"[^a-z0-9]+", "-", ascii_.lower())[:40].strip("-") or "criativo"
+ICONES = {"ok": "✅", "erro": "❌", "pulado": "⏭️ ", "aguardando": "…", "rodando": "…"}
 
 
 def main() -> int:
@@ -31,46 +24,25 @@ def main() -> int:
     parser.add_argument("--saida", default="saida", help="Pasta onde salvar os resultados")
     args = parser.parse_args()
 
-    escolhidos = args.so.split(",") if args.so else list(PROVEDORES)
-    desconhecidos = [n for n in escolhidos if n not in PROVEDORES]
-    if desconhecidos:
-        parser.error(f"IA desconhecida: {', '.join(desconhecidos)}")
+    try:
+        execucao = Execucao.nova(
+            Path(args.saida), args.ideia, args.formato, args.contexto,
+            args.so.split(",") if args.so else None, not args.sem_diretor,
+        )
+    except ValueError as erro:
+        parser.error(str(erro))
 
-    pasta = Path(args.saida) / f"{datetime.now():%Y%m%d-%H%M%S}-{_slug(args.ideia)}"
-    pasta.mkdir(parents=True, exist_ok=True)
+    print(f"🚀 Gerando em: {', '.join(execucao.estado['ias'])} (o vídeo pode levar alguns minutos)")
+    execucao.rodar()
 
-    if args.sem_diretor or not config.tem_chave("ANTHROPIC_API_KEY"):
-        briefing = diretor.briefing_basico(args.ideia)
-    else:
-        print("🎬 Opus 5.5 montando o briefing e os prompts...")
-        briefing = diretor.criar_briefing(args.ideia, args.formato, args.contexto)
-    (pasta / "briefing.json").write_text(json.dumps(briefing, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    resultados: dict = {}
-    tarefas = {}
-    with ThreadPoolExecutor(max_workers=len(escolhidos)) as pool:
-        for nome in escolhidos:
-            modulo, chave = PROVEDORES[nome]
-            if not config.tem_chave(chave):
-                resultados[nome] = f"Pulado: defina {chave} no .env"
-                print(f"⏭️  {nome}: sem {chave}")
-                continue
-            print(f"🚀 {nome}: gerando...")
-            tarefas[pool.submit(modulo.gerar, briefing, args.formato, pasta)] = (nome, time.monotonic())
-
-        for futuro in as_completed(tarefas):
-            nome, inicio = tarefas[futuro]
-            try:
-                resultados[nome] = futuro.result()
-                print(f"✅ {nome}: {resultados[nome]} ({time.monotonic() - inicio:.0f}s)")
-            except Exception as erro:  # um provedor falhar não derruba os outros
-                resultados[nome] = f"Erro: {erro}"
-                print(f"❌ {nome}: {erro}")
-
-    ordenados = {n: resultados[n] for n in escolhidos if n in resultados}
-    indice = galeria.montar(pasta, args.ideia, args.formato, briefing, ordenados)
-    print(f"\n📂 Resultados em {pasta}\n🖼️  Abra {indice} para comparar")
-    return 0 if any(isinstance(r, Path) for r in ordenados.values()) else 1
+    for nome, no in execucao.estado["nos"].items():
+        if nome == "ideia":
+            continue
+        detalhe = no["arquivo"] or no["erro"] or ""
+        tempo = f" ({no['fim'] - no['inicio']:.0f}s)" if no["inicio"] and no["fim"] else ""
+        print(f"{ICONES[no['status']]} {nome}: {detalhe}{tempo}")
+    print(f"\n📂 Resultados em {execucao.pasta}\n🖼️  Abra {execucao.pasta / 'index.html'} para comparar")
+    return 0 if any(execucao.estado["nos"][n]["status"] == "ok" for n in execucao.estado["ias"]) else 1
 
 
 if __name__ == "__main__":

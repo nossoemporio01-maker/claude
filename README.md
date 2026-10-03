@@ -41,7 +41,25 @@ Chaves:
 Se faltar uma chave, essa IA é pulada e as outras rodam normalmente. Sem a chave da Anthropic,
 a ideia vai crua (sem passar pelo diretor) para as outras IAs.
 
-## Uso
+## Painel visual (estilo n8n)
+
+```bash
+python -m criativos.web
+```
+
+O navegador abre em http://localhost:8000. Nele você:
+
+- escreve a ideia, o contexto, o formato e escolhe as IAs;
+- vê o fluxo em nós (Ideia → Diretor → ChatGPT / Gemini / Flow / Opus → Galeria), com o status de cada um
+  ao vivo (aguardando, rodando, pronto, erro), o tempo de cada etapa e as conexões animadas;
+- clica num nó para ver o briefing, o prompt usado, a prévia do resultado, o erro (se houver),
+  baixar o arquivo ou **rodar de novo** só aquela IA;
+- acessa o histórico de todas as execuções na lateral.
+
+Opções: `--porta 8000`, `--saida saida`, `--sem-navegador`. O painel roda só na sua máquina
+(escuta em `127.0.0.1`), porque usa as suas chaves de API.
+
+## Uso pela linha de comando
 
 ```bash
 python -m criativos "Promoção de café gelado para o verão, clima de praia"
