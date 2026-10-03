@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fluxo de Criativos</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff6d5a'/%3E%3Ctext x='16' y='22' font-size='18' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f4f4f6; --panel: #ffffff; --line: #e2e2e8; --tx: #1d1d24; --mut: #6b6b78;
+    --canvas: #eceef2; --dot: #cfd2da; --edge: #b9bcc6;
+    --run: #2f6fec; --ok: #1f9d55; --err: #d93636; --skip: #9a9aa6; --accent: #ff6d5a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .06), 0 4px 16px rgb(0 0 0 / .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171c; --panel: #212128; --line: #33333d; --tx: #ececf1; --mut: #9a9aa8;
+      --canvas: #1b1b21; --dot: #2e2e37; --edge: #4a4a56;
+      --run: #5b8ef5; --ok: #3cc47c; --err: #f06262; --skip: #6d6d7a;
+      --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 16px rgb(0 0 0 / .3);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--tx); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+
+  .app { display: grid; grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: 52px 1fr; height: 100vh; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; flex: none; }
+  header .logo { width: 22px; height: 22px; border-radius: 6px; background: var(--accent); display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; }
+  header .titulo-exec { color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+  header .btn { flex: none; }
+
+  aside { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mut); margin: 0 0 8px; }
+  label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  label small { font-weight: 400; color: var(--mut); }
+  textarea, input[type=text], input[type=password] { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
+  textarea { resize: vertical; }
+  textarea:focus, input:focus { outline: 2px solid var(--run); outline-offset: -1px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { flex: 1; border: 0; background: transparent; padding: 6px 0; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--tx); color: var(--panel); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+  .chip.on { border-color: var(--run); background: color-mix(in srgb, var(--run) 12%, transparent); }
+  .chip:disabled { opacity: .45; cursor: not-allowed; text-decoration: line-through; }
+  .toggle { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-weight: 400; cursor: pointer; }
+  .executar { width: 100%; margin-top: 16px; padding: 10px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .executar:disabled { opacity: .6; cursor: progress; }
+  .msg { color: var(--err); margin: 8px 0 0; min-height: 1em; }
+  .aviso { font-size: 12px; color: var(--mut); margin: 8px 0 0; }
+
+  .hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .hist li { display: flex; align-items: center; }
+  .hist .abrir { flex: 1; min-width: 0; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 8px; padding: 8px; cursor: pointer; }
+  .hist .abrir:hover { background: var(--bg); }
+  .hist .abrir.on { border-color: var(--line); background: var(--bg); }
+  .hist .apagar { border: 0; background: transparent; color: var(--mut); cursor: pointer; padding: 6px; border-radius: 6px; opacity: 0; }
+  .hist li:hover .apagar, .hist .apagar:focus { opacity: 1; }
+  .hist .t { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist .m { display: flex; align-items: center; gap: 6px; color: var(--mut); font-size: 12px; margin-top: 2px; }
+  .dots { display: inline-flex; gap: 3px; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+  .vazio { color: var(--mut); }
+
+  main { position: relative; overflow: auto; min-width: 0; background-color: var(--canvas); background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 20px 20px; }
+  .fluxo { position: relative; min-width: 940px; min-height: 100%; display: flex; align-items: center; justify-content: safe center; gap: 64px; padding: 40px; }
+  .col { display: flex; flex-direction: column; gap: 22px; position: relative; z-index: 1; }
+  svg.arestas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  svg.arestas path { fill: none; stroke: var(--edge); stroke-width: 2; }
+  svg.arestas path.ok { stroke: var(--ok); }
+  svg.arestas path.erro { stroke: var(--err); stroke-dasharray: 4 4; }
+  svg.arestas path.rodando { stroke: var(--run); stroke-dasharray: 6 6; animation: fluir .6s linear infinite; }
+  @keyframes fluir { to { stroke-dashoffset: -12; } }
+
+  .no { width: 200px; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); cursor: pointer; text-align: left; transition: border-color .2s, transform .1s; }
+  .no:hover { transform: translateY(-1px); }
+  .no:focus-visible { outline: 2px solid var(--run); outline-offset: 2px; }
+  .no.sel { outline: 2px solid var(--tx); outline-offset: 2px; }
+  .no .topo { display: flex; align-items: center; gap: 10px; }
+  .ic { flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; }
+  .no .nome { font-weight: 600; }
+  .no .sub { color: var(--mut); font-size: 12px; }
+  .no .rodape { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: var(--mut); font-variant-numeric: tabular-nums; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .no.rodando { border-color: var(--run); animation: pulsar 1.4s ease-in-out infinite; }
+  .no.ok { border-color: var(--ok); }
+  .no.erro { border-color: var(--err); }
+  .no.pulado { border-style: dashed; opacity: .65; }
+  @keyframes pulsar { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--run) 18%, transparent), var(--shadow); } }
+  @media (prefers-reduced-motion: reduce) { .no.rodando, svg.arestas path.rodando { animation: none; } }
+  .s-aguardando { color: var(--skip); } .s-rodando { color: var(--run); } .s-ok { color: var(--ok); } .s-erro { color: var(--err); } .s-pulado { color: var(--skip); }
+  .no .thumb { margin-top: 8px; border-radius: 8px; overflow: hidden; background: var(--bg); }
+  .no .thumb img, .no .thumb video { display: block; width: 100%; max-height: 120px; object-fit: cover; }
+
+  .gaveta { position: fixed; top: 52px; right: 0; bottom: 0; width: min(440px, 100vw); background: var(--panel); border-left: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(100%); visibility: hidden; transition: transform .2s, visibility .2s; overflow-y: auto; z-index: 5; padding: 16px; }
+  .gaveta.aberta { transform: none; visibility: visible; }
+  @media (min-width: 1100px) { body.com-gaveta main { margin-right: min(440px, 100vw); } }
+  .gaveta .cab { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .gaveta .cab h3 { margin: 0; flex: 1; font-size: 16px; }
+  .fechar { border: 0; background: transparent; font-size: 20px; cursor: pointer; color: var(--mut); }
+  .gaveta dl { margin: 0; }
+  .gaveta dt { font-weight: 600; margin-top: 12px; color: var(--mut); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .gaveta dd { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+  .gaveta pre { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 10px; margin: 4px 0 0; font: 12.5px/1.5 ui-monospace, monospace; }
+  .gaveta img, .gaveta video { width: 100%; border-radius: 8px; display: block; }
+  .moldura { overflow: hidden; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
+  .moldura iframe { border: 0; transform-origin: 0 0; display: block; }
+  .acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .btn { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 12px; cursor: pointer; text-decoration: none; color: inherit; display: inline-block; }
+  .btn.prim { background: var(--tx); color: var(--panel); border-color: var(--tx); }
+  .erro-box { background: color-mix(in srgb, var(--err) 10%, transparent); color: var(--err); border-radius: 8px; padding: 10px; white-space: pre-wrap; word-break: break-word; }
+
+  dialog { border: 0; border-radius: 14px; padding: 0; background: var(--panel); color: var(--tx); box-shadow: var(--shadow); width: min(520px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgb(0 0 0 / .45); }
+  dialog form { padding: 20px; }
+  dialog h2 { margin: 0 0 4px; font-size: 18px; }
+  dialog p { color: var(--mut); margin: 0 0 8px; }
+  dialog .linha { display: grid; grid-template-columns: 1fr; gap: 0; }
+  dialog details { margin-top: 14px; }
+  dialog summary { cursor: pointer; color: var(--mut); }
+  dialog .rodape { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  dialog a { color: var(--run); }
+
+  .galeria { width: min(1400px, calc(100vw - 32px)); max-height: calc(100vh - 32px); }
+  .galeria .conteudo { padding: 20px; }
+  .galeria .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+  .galeria article { background: var(--bg); border-radius: 12px; padding: 12px; min-width: 0; }
+  .galeria article h3 { font-size: 14px; margin: 0 0 8px; }
+  .galeria img, .galeria video { width: 100%; border-radius: 8px; display: block; }
+  .galeria dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 12px 0 0; }
+  .galeria dt { font-weight: 600; } .galeria dd { margin: 0; white-space: pre-wrap; min-width: 0; word-break: break-word; }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 52px auto 70vh; height: auto; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); }
+    header .titulo-exec { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="logo">C</span>Fluxo de Criativos</h1>
+    <span class="titulo-exec" id="tituloExec"></span>
+    <button class="btn" id="abrirChaves" type="button">🔑 Chaves</button>
+  </header>
+
+  <aside>
+    <form id="form">
+      <h2>Nova execução</h2>
+      <label for="ideia">Ideia do criativo</label>
+      <textarea id="ideia" rows="4" placeholder="Ex.: Promoção de café gelado para o verão, clima de praia" required></textarea>
+      <label for="contexto">Contexto <small>(opcional)</small></label>
+      <textarea id="contexto" rows="2" placeholder="Marca, produto, público, tom de voz..."></textarea>
+      <label>Formato</label>
+      <div class="seg" id="formatos"></div>
+      <label>IAs</label>
+      <div class="chips" id="ias"></div>
+      <label class="toggle"><input type="checkbox" id="diretor" checked> Opus 5.5 como diretor criativo</label>
+      <button class="executar" id="executar" type="submit">▶ Executar fluxo</button>
+      <p class="msg" id="msg"></p>
+      <p class="aviso">Deixe esta aba aberta enquanto o fluxo roda. O vídeo leva de 1 a 5 minutos.</p>
+    </form>
+    <section>
+      <h2>Execuções</h2>
+      <ul class="hist" id="hist"><li class="vazio">Nenhuma ainda.</li></ul>
+    </section>
+  </aside>
+
+  <main id="canvas">
+    <div class="fluxo" id="fluxo">
+      <svg class="arestas" id="arestas"></svg>
+      <div class="col" data-col="0"></div>
+      <div class="col" data-col="1"></div>
+      <div class="col" data-col="2"></div>
+      <div class="col" data-col="3"></div>
+    </div>
+  </main>
+</div>
+
+<div class="gaveta" id="gaveta"></div>
+
+<dialog id="chaves">
+  <form method="dialog" id="formChaves">
+    <h2>Chaves de API</h2>
+    <p>As chaves ficam salvas só neste navegador e vão direto para cada IA. Nada passa por outro servidor.</p>
+    <div class="linha">
+      <label for="kAnthropic">Anthropic <small>(Opus 5.5) · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">pegar chave</a></small></label>
+      <input type="password" id="kAnthropic" autocomplete="off" placeholder="sk-ant-...">
+      <label for="kOpenai">OpenAI <small>(ChatGPT) · <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">pegar chave</a></small></label>
+      <input type="password" id="kOpenai" autocomplete="off" placeholder="sk-...">
+      <label for="kGemini">Google AI <small>(Gemini e Flow/Veo) · <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">pegar chave</a></small></label>
+      <input type="password" id="kGemini" autocomplete="off" placeholder="AIza...">
+    </div>
+    <details>
+      <summary>Modelos</summary>
+      <div class="linha">
+        <label for="mClaude">Claude</label><input type="text" id="mClaude">
+        <label for="mOpenai">Imagem OpenAI</label><input type="text" id="mOpenai">
+        <label for="mGemini">Imagem Gemini</label><input type="text" id="mGemini">
+        <label for="mVeo">Vídeo Veo</label><input type="text" id="mVeo">
+      </div>
+    </details>
+    <div class="rodape">
+      <button class="btn" value="cancel" formnovalidate type="submit">Cancelar</button>
+      <button class="btn prim" value="salvar" type="submit">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="galeria" class="galeria"><div class="conteudo" id="galeriaConteudo"></div></dialog>
+
+<script>
+// ============================================================
+// Configuração
+// ============================================================
+const MODELOS_PADRAO = {
+  claude: "claude-opus-5-5",
+  openai: "gpt-image-2",
+  gemini: "gemini-3-pro-image-preview",
+  veo: "veo-3.1-generate-preview",
+};
+const NOS = {
+  ideia:   { nome: "Ideia",      sub: "Entrada",             cor: "#ff6d5a", ic: "✎", col: 0 },
+  diretor: { nome: "Diretor",    sub: "Opus 5.5 · briefing", cor: "#c96442", ic: "★", col: 1 },
+  chatgpt: { nome: "ChatGPT",    sub: "Imagem",              cor: "#10a37f", ic: "G", col: 2, chave: "openai" },
+  gemini:  { nome: "Gemini",     sub: "Imagem",              cor: "#4b7bec", ic: "◆", col: 2, chave: "gemini" },
+  flow:    { nome: "Flow · Veo", sub: "Vídeo ~8s",           cor: "#8e44ad", ic: "▶", col: 2, chave: "gemini" },
+  opus:    { nome: "Opus 5.5",   sub: "Peça em HTML",        cor: "#d97757", ic: "A", col: 2, chave: "anthropic" },
+  galeria: { nome: "Galeria",    sub: "Comparação final",    cor: "#3d3d4a", ic: "▦", col: 3 },
+};
+const IAS = ["chatgpt", "gemini", "flow", "opus"];
+const FORMATOS = ["1:1", "4:5", "9:16", "16:9"];
+const DIM = { "1:1": [1080, 1080], "4:5": [1080, 1350], "9:16": [1080, 1920], "16:9": [1920, 1080] };
+const ROTULO = { aguardando: "Aguardando", rodando: "Rodando", ok: "Pronto", erro: "Erro", pulado: "Pulado" };
+
+function lerLS(k, padrao) { try { return JSON.parse(localStorage.getItem(k)) ?? padrao; } catch { return padrao; } }
+function gravarLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+let chaves = lerLS("criativos.chaves", { anthropic: "", openai: "", gemini: "" });
+let modelos = { ...MODELOS_PADRAO, ...lerLS("criativos.modelos", {}) };
+
+// ============================================================
+// Armazenamento (IndexedDB): execuções e arquivos gerados
+// ============================================================
+const db = new Promise((ok, falha) => {
+  const req = indexedDB.open("criativos", 1);
+  req.onupgradeneeded = () => {
+    req.result.createObjectStore("execucoes", { keyPath: "id" });
+    req.result.createObjectStore("arquivos");
+  };
+  req.onsuccess = () => ok(req.result);
+  req.onerror = () => falha(req.error);
+});
+async function idb(loja, modo, fn) {
+  const banco = await db;
+  return new Promise((ok, falha) => {
+    const tx = banco.transaction(loja, modo);
+    const req = fn(tx.objectStore(loja));
+    tx.oncomplete = () => ok(req && req.result);
+    tx.onerror = () => falha(tx.error);
+  });
+}
+const salvarExec = (e) => idb("execucoes", "readwrite", (s) => s.put(e));
+const todasExec = () => idb("execucoes", "readonly", (s) => s.getAll());
+const salvarArq = (chave, blob) => idb("arquivos", "readwrite", (s) => s.put(blob, chave));
+const lerArq = (chave) => idb("arquivos", "readonly", (s) => s.get(chave));
+async function apagarExec(e) {
+  await idb("execucoes", "readwrite", (s) => s.delete(e.id));
+  await idb("arquivos", "readwrite", (s) => { for (const n of IAS) s.delete(`${e.id}/${n}`); });
+}
+
+const urls = new Map(); // chave -> object URL
+async function urlArq(exec, nome) {
+  const chave = `${exec.id}/${nome}`;
+  if (urls.has(chave)) return urls.get(chave);
+  const blob = await lerArq(chave);
+  if (!blob) return null;
+  const url = URL.createObjectURL(blob);
+  urls.set(chave, url);
+  return url;
+}
+
+// ============================================================
+// Chamadas às IAs (direto do navegador)
+// ============================================================
+async function chamar(url, opcoes) {
+  const r = await fetch(url, opcoes);
+  const texto = await r.text();
+  let dados; try { dados = JSON.parse(texto); } catch { dados = null; }
+  if (!r.ok) {
+    const m = dados?.error?.message || dados?.message || texto.slice(0, 300) || r.statusText;
+    throw new Error(`${r.status}: ${m}`);
+  }
+  return dados;
+}
+
+function claude(body) {
+  return chamar("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": chaves.anthropic,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({ model: modelos.claude, ...body }),
+  });
+}
+const textoClaude = (r) => r.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+
+const SCHEMA_BRIEFING = {
+  type: "object",
+  properties: {
+    conceito: { type: "string" }, headline: { type: "string" }, texto_apoio: { type: "string" },
+    cta: { type: "string" }, legenda: { type: "string" },
+    prompt_chatgpt: { type: "string" }, prompt_gemini: { type: "string" }, prompt_flow: { type: "string" },
+  },
+  required: ["conceito", "headline", "texto_apoio", "cta", "legenda", "prompt_chatgpt", "prompt_gemini", "prompt_flow"],
+  additionalProperties: false,
+};
+const SYSTEM_DIRETOR = `Você é um diretor criativo sênior de performance (anúncios para Instagram, TikTok e Meta Ads).
+Recebe uma ideia crua de criativo e devolve um briefing enxuto e prompts prontos para cada IA geradora.
+
+Regras:
+- Copy (headline, texto_apoio, cta, legenda) em português do Brasil, direta e persuasiva. A legenda já vem com hashtags.
+- Prompts de geração em inglês, ricos em detalhes visuais: sujeito, composição, enquadramento, luz, paleta, estilo, lente.
+- Se o criativo tiver texto na arte, coloque o texto exato entre aspas no prompt da imagem.
+- prompt_chatgpt e prompt_gemini exploram ângulos visuais DIFERENTES do mesmo conceito, para dar variedade ao teste A/B.
+- prompt_flow descreve um vídeo curto (~8s) com movimento de câmera, ação e som ambiente/trilha.`;
+
+async function gerarBriefing(e) {
+  let pedido = `Ideia do criativo: ${e.ideia}\nFormato: ${e.formato}`;
+  if (e.contexto) pedido += `\nContexto da marca/produto: ${e.contexto}`;
+  const r = await claude({
+    max_tokens: 4000,
+    system: SYSTEM_DIRETOR,
+    messages: [{ role: "user", content: pedido }],
+    output_config: { format: { type: "json_schema", schema: SCHEMA_BRIEFING } },
+  });
+  return JSON.parse(textoClaude(r));
+}
+function briefingBasico(ideia) {
+  return { conceito: ideia, headline: "", texto_apoio: "", cta: "", legenda: "", prompt_chatgpt: ideia, prompt_gemini: ideia, prompt_flow: ideia };
+}
+
+const GERADORES = {
+  async chatgpt(b, formato) {
+    const tamanho = { "1:1": "1024x1024", "4:5": "1024x1536", "9:16": "1024x1536", "16:9": "1536x1024" }[formato];
+    const r = await chamar("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${chaves.openai}` },
+      body: JSON.stringify({ model: modelos.openai, prompt: b.prompt_chatgpt, size: tamanho, quality: "high", n: 1 }),
+    });
+    const b64 = r.data?.[0]?.b64_json;
+    if (!b64) throw new Error("A OpenAI não devolveu imagem.");
+    return base64Blob(b64, "image/png");
+  },
+
+  async gemini(b, formato) {
+    const r = await chamar(`https://generativelanguage.googleapis.com/v1beta/models/${modelos.gemini}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": chaves.gemini },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: b.prompt_gemini }] }],
+        generationConfig: { responseModalities: ["TEXT", "IMAGE"], imageConfig: { aspectRatio: formato } },
+      }),
+    });
+    const partes = r.candidates?.[0]?.content?.parts || [];
+    const img = partes.find((p) => p.inlineData?.data);
+    if (!img) {
+      const motivo = r.candidates?.[0]?.finishReason || r.promptFeedback?.blockReason || partes.map((p) => p.text).join(" ");
+      throw new Error(`O Gemini não devolveu imagem. ${motivo || ""}`.trim());
+    }
+    return base64Blob(img.inlineData.data, img.inlineData.mimeType || "image/png");
+  },
+
+  async flow(b, formato, aoProgresso) {
+    // O Google Flow não tem API pública; o motor dele é o Veo.
+    const base = "https://generativelanguage.googleapis.com/v1beta";
+    const cab = { "content-type": "application/json", "x-goog-api-key": chaves.gemini };
+    const proporcao = formato === "16:9" ? "16:9" : "9:16";
+    let op = await chamar(`${base}/models/${modelos.veo}:predictLongRunning`, {
+      method: "POST", headers: cab,
+      body: JSON.stringify({ instances: [{ prompt: b.prompt_flow }], parameters: { aspectRatio: proporcao, sampleCount: 1 } }),
+    });
+    const nomeOp = op.name, inicio = Date.now();
+    while (!op.done) {
+      if (Date.now() - inicio > 15 * 60 * 1000) throw new Error("O Veo demorou mais de 15 minutos.");
+      await esperar(10000);
+      op = await chamar(`${base}/${nomeOp}`, { headers: cab });
+    }
+    if (op.error) throw new Error(`Veo: ${op.error.message || JSON.stringify(op.error)}`);
+    const resp = op.response?.generateVideoResponse;
+    const uri = resp?.generatedSamples?.[0]?.video?.uri;
+    if (!uri) throw new Error(`O Veo não devolveu vídeo. ${(resp?.raiMediaFilteredReasons || []).join(" ")}`.trim());
+    aoProgresso?.({ video_uri: uri });
+    const r = await fetch(uri, { headers: { "x-goog-api-key": chaves.gemini } });
+    if (!r.ok) throw new Error(`Não consegui baixar o vídeo (${r.status}).`);
+    return await r.blob();
+  },
+
+  async opus(b, formato) {
+    const [w, h] = DIM[formato];
+    const pedido = `Tamanho: ${w}x${h}px\nConceito: ${b.conceito}\nHeadline: ${b.headline}\nTexto de apoio: ${b.texto_apoio}\nCTA: ${b.cta}`;
+    const r = await claude({
+      max_tokens: 16000,
+      system: `Você é um designer de anúncios de alta conversão.
+Crie a peça como UM arquivo HTML autocontido (CSS inline, ilustrações em SVG inline, sem imagens externas;
+Google Fonts é permitido). O <body> deve ter exatamente o tamanho pedido, sem margem nem rolagem.
+Hierarquia forte, contraste alto, CTA visível. Responda só com o HTML, sem explicações.`,
+      messages: [{ role: "user", content: pedido }],
+    });
+    const html = textoClaude(r).trim().replace(/^```(?:html)?\s*/, "").replace(/\s*```$/, "");
+    return new Blob([html], { type: "text/html" });
+  },
+};
+
+function base64Blob(b64, tipo) {
+  const bin = atob(b64), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: tipo });
+}
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ============================================================
+// Motor do fluxo
+// ============================================================
+const ativas = new Set();
+let execucoes = [];
+
+function no(status = "aguardando") { return { status, inicio: null, fim: null, erro: null, arquivo: null }; }
+
+function novaExecucao({ ideia, contexto, formato, ias, usarDiretor }) {
+  const agora = new Date();
+  const e = {
+    id: `${agora.getTime().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    ideia, contexto, formato, ias,
+    criado_em: agora.toISOString(),
+    briefing: null,
+    nos: { ideia: no("ok"), diretor: no(), galeria: no() },
+  };
+  for (const n of ias) e.nos[n] = no();
+  if (!usarDiretor || !chaves.anthropic) {
+    e.nos.diretor = { ...no("pulado"), erro: usarDiretor ? "Sem chave da Anthropic: a ideia vai crua para as IAs." : "Desligado nesta execução." };
+  }
+  return e;
+}
+
+async function atualizar(e, nome, campos) {
+  Object.assign(e.nos[nome], campos);
+  await salvarExec(e);
+  if (atual && atual.id === e.id) render();
+  renderHistorico();
+}
+
+async function etapa(e, nome, fn) {
+  await atualizar(e, nome, { status: "rodando", inicio: Date.now(), fim: null, erro: null });
+  try {
+    const res = await fn();
+    await atualizar(e, nome, { status: "ok", fim: Date.now() });
+    return res;
+  } catch (err) {
+    await atualizar(e, nome, { status: "erro", fim: Date.now(), erro: err.message || String(err) });
+    return null;
+  }
+}
+
+async function rodarIA(e, nome) {
+  if (!chaves[NOS[nome].chave]) {
+    return atualizar(e, nome, { status: "pulado", erro: "Sem chave de API para esta IA. Abra 🔑 Chaves." });
+  }
+  await etapa(e, nome, async () => {
+    const blob = await GERADORES[nome](e.briefing, e.formato, (extra) => Object.assign(e.nos[nome], extra));
+    const chave = `${e.id}/${nome}`;
+    await salvarArq(chave, blob);
+    urls.delete(chave);
+    e.nos[nome].arquivo = { tipo: blob.type, tamanho: blob.size };
+  });
+}
+
+async function fecharGaleria(e) {
+  await etapa(e, "galeria", async () => {
+    if (!e.ias.some((n) => e.nos[n].status === "ok")) throw new Error("Nenhuma IA entregou resultado.");
+  });
+}
+
+async function rodarFluxo(e) {
+  ativas.add(e.id);
+  try {
+    if (e.nos.diretor.status !== "pulado") {
+      e.briefing = await etapa(e, "diretor", () => gerarBriefing(e));
+    }
+    e.briefing ||= briefingBasico(e.ideia);
+    await salvarExec(e);
+    await Promise.all(e.ias.map((n) => rodarIA(e, n)));
+    await fecharGaleria(e);
+  } finally {
+    ativas.delete(e.id);
+    render(); renderHistorico();
+  }
+}
+
+async function repetir(e, nome) {
+  ativas.add(e.id);
+  try {
+    await rodarIA(e, nome);
+    await fecharGaleria(e);
+  } finally {
+    ativas.delete(e.id);
+    render(); renderHistorico();
+  }
+}
+
+// ============================================================
+// Interface
+// ============================================================
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+let atual = null, noSel = null, formato = "1:1";
+const iasOn = new Set(IAS);
+
+function iaDisponivel(n) { return !!chaves[NOS[n].chave]; }
+
+function montarForm() {
+  $("#formatos").innerHTML = FORMATOS.map((f) => `<button type="button" data-f="${f}" class="${f === formato ? "on" : ""}">${f}</button>`).join("");
+  $("#ias").innerHTML = IAS.map((n) => {
+    const ok = iaDisponivel(n);
+    return `<button type="button" class="chip ${ok && iasOn.has(n) ? "on" : ""}" data-ia="${n}" ${ok ? "" : 'disabled title="Falta a chave de API (🔑 Chaves)"'}>${NOS[n].nome}</button>`;
+  }).join("");
+  const dir = $("#diretor");
+  dir.disabled = !chaves.anthropic;
+  if (!chaves.anthropic) dir.checked = false;
+  dir.parentElement.title = chaves.anthropic ? "" : "Falta a chave da Anthropic (🔑 Chaves)";
+}
+$("#formatos").addEventListener("click", (ev) => {
+  const f = ev.target.dataset.f; if (!f) return;
+  formato = f; montarForm();
+});
+$("#ias").addEventListener("click", (ev) => {
+  const n = ev.target.dataset.ia; if (!n || ev.target.disabled) return;
+  iasOn.has(n) ? iasOn.delete(n) : iasOn.add(n);
+  montarForm(); if (!atual) render();
+});
+$("#form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("#msg").textContent = "";
+  const ideia = $("#ideia").value.trim();
+  const ias = IAS.filter((n) => iasOn.has(n) && iaDisponivel(n));
+  if (!ideia) { $("#msg").textContent = "Escreva a ideia do criativo."; return; }
+  if (!ias.length) { $("#msg").textContent = "Nenhuma IA disponível. Coloque suas chaves em 🔑 Chaves."; return; }
+  const e = novaExecucao({ ideia, contexto: $("#contexto").value.trim(), formato, ias, usarDiretor: $("#diretor").checked });
+  await salvarExec(e);
+  execucoes.unshift(e);
+  $("#ideia").value = "";
+  selecionar(e);
+  rodarFluxo(e);
+});
+
+// ---------- histórico ----------
+function renderHistorico() {
+  $("#hist").innerHTML = execucoes.length ? execucoes.map((x) => {
+    const pontos = x.ias.map((n) => `<i style="background:var(--${{ ok: "ok", erro: "err", rodando: "run" }[x.nos[n].status] || "line"})"></i>`).join("");
+    const d = new Date(x.criado_em);
+    const data = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return `<li><button class="abrir ${atual && atual.id === x.id ? "on" : ""}" data-id="${esc(x.id)}"><span class="t">${esc(x.ideia)}</span><span class="m"><span class="dots">${pontos}</span>${data}${ativas.has(x.id) ? " · rodando" : ""}</span></button>${ativas.has(x.id) ? "" : `<button class="apagar" data-apagar="${esc(x.id)}" title="Apagar" aria-label="Apagar execução">🗑</button>`}</li>`;
+  }).join("") : '<li class="vazio">Nenhuma ainda.</li>';
+}
+$("#hist").addEventListener("click", async (ev) => {
+  const ab = ev.target.closest("[data-id]");
+  if (ab) return selecionar(execucoes.find((x) => x.id === ab.dataset.id));
+  const ap = ev.target.closest("[data-apagar]");
+  if (ap) {
+    if (ap.dataset.confirmar !== "1") { ap.dataset.confirmar = "1"; ap.textContent = "Apagar?"; return; }
+    const e = execucoes.find((x) => x.id === ap.dataset.apagar);
+    await apagarExec(e);
+    execucoes = execucoes.filter((x) => x !== e);
+    if (atual === e) { atual = null; noSel = null; fecharGaveta(); }
+    render(); renderHistorico();
+  }
+});
+
+// ---------- canvas ----------
+function selecionar(e) {
+  atual = e; noSel = null; fecharGaveta();
+  try { history.replaceState(null, "", `#${e.id}`); } catch {}
+  render(); renderHistorico();
+}
+
+function tempo(n) {
+  if (!n.inicio) return "";
+  const s = Math.max(0, Math.round(((n.fim || Date.now()) - n.inicio) / 1000));
+  return s >= 60 ? `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s` : `${s}s`;
+}
+function nosVisiveis() {
+  return ["ideia", "diretor", ...(atual ? atual.ias : IAS.filter((n) => iasOn.has(n))), "galeria"];
+}
+function estadoNo(nome) {
+  return atual ? atual.nos[nome] : { status: nome === "ideia" ? "ok" : "aguardando" };
+}
+
+let versaoRender = 0;
+function render() {
+  const versao = ++versaoRender;
+  $("#tituloExec").textContent = atual ? `· ${atual.ideia}` : "";
+  document.querySelectorAll(".col").forEach((c) => (c.innerHTML = ""));
+  for (const nome of nosVisiveis()) {
+    const meta = NOS[nome], n = estadoNo(nome);
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = `no ${n.status} ${noSel === nome ? "sel" : ""}`;
+    el.dataset.no = nome;
+    el.innerHTML = `
+      <div class="topo"><div class="ic" style="background:${meta.cor}">${meta.ic}</div>
+        <div><div class="nome">${meta.nome}</div><div class="sub">${meta.sub}</div></div></div>
+      <div class="rodape"><span class="pill s-${n.status}">${ROTULO[n.status]}</span><span class="tempo" data-no="${nome}">${tempo(n)}</span></div>
+      <div class="thumb" hidden></div>`;
+    document.querySelector(`.col[data-col="${meta.col}"]`).appendChild(el);
+    if (atual && n.status === "ok" && n.arquivo && /^(image|video)\//.test(n.arquivo.tipo)) {
+      urlArq(atual, nome).then((url) => {
+        if (!url || versao !== versaoRender) return;
+        const t = el.querySelector(".thumb");
+        t.innerHTML = n.arquivo.tipo.startsWith("video/") ? `<video src="${url}" muted loop autoplay playsinline></video>` : `<img src="${url}" alt="">`;
+        t.hidden = false;
+        requestAnimationFrame(desenharArestas);
+      });
+    }
+  }
+  requestAnimationFrame(desenharArestas);
+  if (noSel) abrirGaveta(noSel, true);
+}
+
+function desenharArestas() {
+  const fluxo = $("#fluxo"), base = fluxo.getBoundingClientRect();
+  const pos = (nome) => {
+    const el = fluxo.querySelector(`.no[data-no="${nome}"]`);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { l: r.left - base.left, r: r.right - base.left, y: r.top - base.top + r.height / 2 };
+  };
+  const ias = nosVisiveis().filter((n) => IAS.includes(n));
+  const ligacoes = [["ideia", "diretor"], ...ias.map((n) => ["diretor", n]), ...ias.map((n) => [n, "galeria"])];
+  $("#arestas").innerHTML = ligacoes.map(([a, b]) => {
+    const p = pos(a), q = pos(b); if (!p || !q) return "";
+    const x1 = p.r, x2 = q.l, dx = (x2 - x1) / 2;
+    const st = estadoNo(b).status;
+    const classe = { rodando: "rodando", erro: "erro", ok: "ok" }[st] || "";
+    return `<path class="${classe}" d="M${x1},${p.y} C${x1 + dx},${p.y} ${x2 - dx},${q.y} ${x2},${q.y}"/>`;
+  }).join("");
+}
+
+setInterval(() => {
+  if (!atual) return;
+  document.querySelectorAll(".tempo[data-no]").forEach((el) => {
+    const n = atual.nos[el.dataset.no]; if (n && n.status === "rodando") el.textContent = tempo(n);
+  });
+  const tg = document.querySelector(".tempo-g");
+  if (tg && noSel && atual.nos[noSel]?.status === "rodando") tg.textContent = tempo(atual.nos[noSel]);
+}, 1000);
+
+// ---------- gaveta de detalhes ----------
+$("#fluxo").addEventListener("click", (ev) => {
+  const el = ev.target.closest(".no"); if (!el) return;
+  noSel = el.dataset.no; render(); abrirGaveta(noSel);
+  setTimeout(() => document.querySelector(`.no[data-no="${noSel}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }), 220);
+});
+
+function campo(rotulo, valor, pre) {
+  if (!valor) return "";
+  return `<dt>${rotulo}</dt><dd>${pre ? `<pre>${esc(valor)}</pre>` : esc(valor)}</dd>`;
+}
+function extensao(tipo) {
+  return { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "video/mp4": "mp4", "text/html": "html" }[tipo] || "bin";
+}
+function nomeArquivo(e, nome) {
+  const slug = e.ideia.normalize("NFKD").replace(/[^\w\s-]/g, "").trim().toLowerCase().replace(/\s+/g, "-").slice(0, 40) || "criativo";
+  return `${slug}-${nome}.${extensao(e.nos[nome].arquivo.tipo)}`;
+}
+function previaHTML(e, nome, url, largura) {
+  const tipo = e.nos[nome].arquivo.tipo;
+  if (tipo.startsWith("video/")) return `<video src="${url}" controls loop playsinline></video>`;
+  if (tipo === "text/html") {
+    const [w, h] = DIM[e.formato], k = largura / w;
+    return `<div class="moldura" style="width:${largura}px;max-width:100%;height:${Math.round(h * k)}px"><iframe sandbox="allow-scripts" src="${url}" title="Peça do Opus" style="width:${w}px;height:${h}px;transform:scale(${k})"></iframe></div>`;
+  }
+  return `<img src="${url}" alt="">`;
+}
+
+async function abrirGaveta(nome, soAtualizar) {
+  const g = $("#gaveta");
+  if (soAtualizar && !g.classList.contains("aberta")) return;
+  const n = estadoNo(nome);
+  const chave = JSON.stringify([atual?.id, nome, n.status, n.arquivo, n.erro, !!atual?.briefing, atual && ativas.has(atual.id)]);
+  if (soAtualizar && g.dataset.chave === chave) return;
+  g.dataset.chave = chave;
+  const meta = NOS[nome], b = atual?.briefing;
+  let corpo = "";
+
+  if (!atual) {
+    corpo = `<p class="vazio">Escreva uma ideia ao lado e clique em <b>Executar fluxo</b> para ver este passo em ação.</p>`;
+  } else if (nome === "ideia") {
+    corpo = `<dl>${campo("Ideia", atual.ideia)}${campo("Contexto", atual.contexto)}${campo("Formato", atual.formato)}${campo("Criado em", new Date(atual.criado_em).toLocaleString("pt-BR"))}</dl>`;
+  } else if (nome === "diretor") {
+    corpo = (n.erro ? `<div class="erro-box">${esc(n.erro)}</div>` : "")
+      + (b && n.status === "ok"
+        ? `<dl>${campo("Conceito", b.conceito)}${campo("Headline", b.headline)}${campo("Texto de apoio", b.texto_apoio)}${campo("CTA", b.cta)}${campo("Legenda", b.legenda)}</dl>`
+        : `<p class="vazio">${n.status === "rodando" ? "O Opus está montando o briefing e os prompts..." : "Sem briefing."}</p>`);
+  } else if (nome === "galeria") {
+    corpo = n.status === "ok"
+      ? `<p>Todas as versões lado a lado, com a copy.</p><div class="acoes"><button class="btn prim" data-galeria>Abrir galeria</button></div>`
+      : n.erro ? `<div class="erro-box">${esc(n.erro)}</div>` : `<p class="vazio">A galeria fecha quando todas as IAs terminam.</p>`;
+  } else {
+    const prompt = b && { chatgpt: b.prompt_chatgpt, gemini: b.prompt_gemini, flow: b.prompt_flow }[nome];
+    const url = n.status === "ok" && n.arquivo ? await urlArq(atual, nome) : null;
+    if (g.dataset.chave !== chave) return; // outra abertura passou na frente
+    corpo = (url ? previaHTML(atual, nome, url, 406) : "")
+      + (n.status === "rodando" ? `<p class="vazio">Gerando${nome === "flow" ? " (o vídeo costuma levar de 1 a 5 minutos)" : ""}...</p>` : "")
+      + (n.erro ? `<div class="erro-box">${esc(n.erro)}</div>` : "")
+      + `<dl>${campo("Prompt usado", prompt, true)}${nome === "opus" && b ? campo("Headline / CTA", [b.headline, b.cta].filter(Boolean).join(" · ")) : ""}</dl>`
+      + `<div class="acoes">`
+      + (url ? `<a class="btn prim" href="${url}" download="${esc(nomeArquivo(atual, nome))}">Baixar</a><a class="btn" href="${url}" target="_blank" rel="noopener">Abrir em nova aba</a>` : "")
+      + (!ativas.has(atual.id) && atual.briefing && iaDisponivel(nome) && n.status !== "rodando" ? `<button class="btn" data-repetir="${nome}">↻ Rodar de novo</button>` : "")
+      + `</div>`;
+  }
+
+  g.innerHTML = `<div class="cab"><div class="ic" style="width:30px;height:30px;border-radius:8px;background:${meta.cor}">${meta.ic}</div>
+    <h3>${meta.nome}</h3><span class="pill s-${n.status}">${ROTULO[n.status]}</span><span class="tempo-g" style="color:var(--mut)">${tempo(n)}</span>
+    <button class="fechar" aria-label="Fechar">×</button></div>${corpo}`;
+  g.classList.add("aberta");
+  if (!document.body.classList.contains("com-gaveta")) {
+    document.body.classList.add("com-gaveta");
+    requestAnimationFrame(desenharArestas);
+  }
+}
+
+function fecharGaveta() {
+  $("#gaveta").classList.remove("aberta");
+  $("#gaveta").dataset.chave = "";
+  document.body.classList.remove("com-gaveta");
+  requestAnimationFrame(desenharArestas);
+  if (noSel) { noSel = null; render(); }
+}
+
+$("#gaveta").addEventListener("click", (ev) => {
+  if (ev.target.closest(".fechar")) return fecharGaveta();
+  if (ev.target.closest("[data-galeria]")) return abrirGaleria();
+  const rep = ev.target.closest("[data-repetir]");
+  if (rep) { rep.disabled = true; repetir(atual, rep.dataset.repetir); }
+});
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !document.querySelector("dialog[open]")) fecharGaveta(); });
+window.addEventListener("resize", () => requestAnimationFrame(desenharArestas));
+window.addEventListener("beforeunload", (ev) => { if (ativas.size) { ev.preventDefault(); ev.returnValue = ""; } });
+
+// ---------- galeria ----------
+async function abrirGaleria() {
+  const e = atual, b = e.briefing || {};
+  const cards = [];
+  for (const nome of e.ias) {
+    const n = e.nos[nome];
+    const url = n.status === "ok" && n.arquivo ? await urlArq(e, nome) : null;
+    cards.push(`<article><h3>${NOS[nome].nome} · ${NOS[nome].sub}</h3>${url ? previaHTML(e, nome, url, 280) + `<div class="acoes"><a class="btn" href="${url}" download="${esc(nomeArquivo(e, nome))}">Baixar</a></div>` : `<div class="erro-box">${esc(n.erro || ROTULO[n.status])}</div>`}</article>`);
+  }
+  const copy = [["Conceito", b.conceito], ["Headline", b.headline], ["Texto de apoio", b.texto_apoio], ["CTA", b.cta], ["Legenda", b.legenda]]
+    .filter(([, v]) => v).map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("");
+  $("#galeriaConteudo").innerHTML = `<div style="display:flex;align-items:center;gap:12px"><h2 style="margin:0;flex:1;font-size:18px">${esc(e.ideia)}</h2><button class="btn" data-fechar-galeria>Fechar</button></div>
+    ${copy ? `<dl>${copy}</dl>` : ""}<div class="grade">${cards.join("")}</div>`;
+  $("#galeria").showModal();
+}
+$("#galeria").addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-fechar-galeria]") || ev.target === $("#galeria")) $("#galeria").close();
+});
+
+// ---------- chaves ----------
+function abrirChaves() {
+  $("#kAnthropic").value = chaves.anthropic; $("#kOpenai").value = chaves.openai; $("#kGemini").value = chaves.gemini;
+  $("#mClaude").value = modelos.claude; $("#mOpenai").value = modelos.openai; $("#mGemini").value = modelos.gemini; $("#mVeo").value = modelos.veo;
+  $("#chaves").showModal();
+}
+$("#abrirChaves").addEventListener("click", abrirChaves);
+$("#chaves").addEventListener("close", () => {
+  if ($("#chaves").returnValue !== "salvar") return;
+  chaves = { anthropic: $("#kAnthropic").value.trim(), openai: $("#kOpenai").value.trim(), gemini: $("#kGemini").value.trim() };
+  modelos = {
+    claude: $("#mClaude").value.trim() || MODELOS_PADRAO.claude, openai: $("#mOpenai").value.trim() || MODELOS_PADRAO.openai,
+    gemini: $("#mGemini").value.trim() || MODELOS_PADRAO.gemini, veo: $("#mVeo").value.trim() || MODELOS_PADRAO.veo,
+  };
+  gravarLS("criativos.chaves", chaves); gravarLS("criativos.modelos", modelos);
+  if (chaves.anthropic) $("#diretor").checked = true;
+  montarForm(); if (!atual) render();
+});
+
+// ---------- início ----------
+(async () => {
+  montarForm();
+  try {
+    execucoes = (await todasExec()).sort((a, b) => b.criado_em.localeCompare(a.criado_em));
+    // fluxo que estava rodando quando a aba fechou
+    for (const e of execucoes) {
+      let mudou = false;
+      for (const n of Object.values(e.nos)) {
+        if (n.status === "rodando" || n.status === "aguardando") { Object.assign(n, { status: "erro", erro: "Interrompido: a aba foi fechada ou recarregada." }); mudou = true; }
+      }
+      if (mudou) await salvarExec(e);
+    }
+  } catch (err) {
+    $("#msg").textContent = "Este navegador não deixou salvar o histórico (modo anônimo?). O fluxo funciona, mas não fica salvo.";
+  }
+  renderHistorico();
+  const id = location.hash.slice(1);
+  const e = execucoes.find((x) => x.id === id);
+  if (e) selecionar(e); else render();
+  if (!chaves.anthropic && !chaves.openai && !chaves.gemini) abrirChaves();
+})();
+</script>
+</body>
+</html>

@@ -15,6 +15,22 @@ Gemini exploram ângulos diferentes, para você ter variações para teste A/B.
 
 No fim, um `index.html` mostra todas as versões lado a lado.
 
+## Site (sem instalar nada)
+
+**https://nossoemporio01-maker.github.io/claude/**
+
+1. Abra o link e clique em **🔑 Chaves** para colar as suas chaves de API. Elas ficam salvas só no seu
+   navegador e vão direto para cada IA, sem passar por outro servidor.
+2. Escreva a ideia, escolha formato e IAs e clique em **Executar fluxo**.
+3. Acompanhe o fluxo em nós (estilo n8n). Clique em cada nó para ver o prompt, a prévia, o erro,
+   baixar o arquivo ou rodar de novo só aquela IA. A galeria compara tudo lado a lado.
+
+O fluxo roda no navegador, então **deixe a aba aberta** até terminar. O histórico fica salvo no navegador
+(em outro computador ou celular, o histórico começa vazio e as chaves precisam ser coladas de novo).
+
+O código do site é o arquivo `site/index.html`, publicado automaticamente pelo GitHub Pages
+(`.github/workflows/pages.yml`) a cada alteração.
+
 ```
 ideia ──► Opus 5.5 (diretor: briefing + prompts)
               │
