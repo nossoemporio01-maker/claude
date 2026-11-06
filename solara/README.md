@@ -3,7 +3,8 @@
 Tudo o que é preciso para criar uma peça nova da Solara (post, carrossel, story, vídeo, imagem ou texto)
 sem ter que perguntar de novo. Onde ainda falta informação está marcado como **A PREENCHER**.
 
-> Atualizado em 06/11/2026, a partir do guia de referência da Solara no projeto do Claude.
+> Atualizado em 06/11/2026, a partir do guia de referência da Solara no projeto do Claude e do site
+> oficial (solarafertilizantes.com).
 > Este repositório é público: aqui ficam só informações de marca. Preços, pedidos, clientes e
 > certificados ficam fora daqui.
 
@@ -23,21 +24,22 @@ sem ter que perguntar de novo. Onde ainda falta informação está marcado como 
 
 ## 1. O que é a Solara
 
-A Solara é uma empresa de comércio de fertilizantes e transporte, com sede em Curitiba/PR. Vende
-fertilizantes para lavoura e ureia para nutrição animal, do porto até o produtor.
+A Solara é uma empresa de comércio de fertilizantes e transporte, com sede em Curitiba/PR, desde 2025.
+Trabalha com comércio atacadista de adubos, fertilizantes, corretivos do solo e defensivos agrícolas,
+e vende fertilizantes para lavoura e ureia para nutrição animal.
 
 | Item | Informação |
 | --- | --- |
 | Razão social | Solara Comércio de Fertilizantes e Transportes Ltda |
-| CNPJ | **A PREENCHER** |
+| CNPJ | 64.979.522/0001-60 |
 | Endereço | R. Buenos Aires, 71, Batel, Curitiba/PR, CEP 80.250-070 |
 | WhatsApp (contato e cotação) | (41) 99810-3880 · https://wa.me/5541998103880 |
 | E-mail | solarafertilizantes@gmail.com |
 | Site | https://solarafertilizantes.com |
 | Instagram | [@solarafertilizantes](https://www.instagram.com/solarafertilizantes/) |
-| Região de atendimento | **A PREENCHER** (só Paraná? Sul? Brasil todo?) |
-| Ano de fundação / história | **A PREENCHER** |
-| Diferenciais confirmados | **A PREENCHER** (ex.: prazo de entrega, origem do produto, venda em Big Bag) |
+| Região de atendimento | PR, SP, MS e MT (o site também diz "produtores rurais em todo o Brasil") |
+| Fundação | 2025, em Curitiba/PR ("Uma empresa do Paraná, com o Brasil inteiro pela frente.") |
+| Diferenciais (como estão no site) | Insumos selecionados · Foco em produtividade · Nutrição completa · Atendimento próximo e direto |
 
 ## 2. Público
 
@@ -45,7 +47,8 @@ fertilizantes para lavoura e ureia para nutrição animal, do porto até o produ
 - Pecuaristas (ureia pecuária para ração e sal mineral).
 - Gestores agrícolas e de fazendas.
 - Revendas de insumos.
-- Perfil principal (porte, culturas, região): **A PREENCHER** (ex.: soja e milho no PR, médio porte).
+- Região: PR, SP, MS e MT.
+- Culturas e porte principais: **A PREENCHER** (ex.: soja e milho, médio porte).
 
 **Objetivo da comunicação:** dar visibilidade à marca, gerar contatos para cotação e posicionar a
 Solara como referência em fertilizantes.
@@ -66,7 +69,9 @@ Profissional, educativo e com autoridade. A Solara ensina o produtor e mostra qu
 - **Frases já aprovadas:**
   - "Fertilizante de qualidade, do galpão até a sua lavoura"
   - "Do porto até a sua lavoura"
-- **Slogan oficial:** **A PREENCHER** (alguma das frases acima é o slogan?)
+- **Slogan (frase principal do site):** "Onde o sol encontra a terra, nasce a colheita."
+- **Outras frases do site:** "Do solo à colheita, ao seu lado." · "Tudo o que sua lavoura precisa, de uma só origem." ·
+  "Cuidar do solo é cuidar do futuro." · "Vamos preparar a próxima safra juntos?"
 
 ## 4. Identidade visual
 
@@ -80,16 +85,17 @@ Profissional, educativo e com autoridade. A Solara ensina o produtor e mostra qu
 
 | Cor | Uso | Hex |
 | --- | --- | --- |
-| Verde | Principal: fundos e títulos | **A PREENCHER** |
-| Laranja | Destaque: sol, bordas, faixas de transição | **A PREENCHER** |
-| Marrom | Apoio, ligado à terra | **A PREENCHER** |
-| Neutro (fundo claro) | Posts alternados com o verde | **A PREENCHER** |
-| Cor dos 3 posts fixados | Terceira cor do feed (o laranja ficou forte demais) | **A PREENCHER** |
+| Verde | Principal: fundos e títulos | `#1F5E3B` (cor oficial do site) |
+| Laranja | Destaque: sol, bordas, faixas de transição | **A PREENCHER** (tirar da logo) |
+| Marrom | Apoio, ligado à terra | **A PREENCHER** (tirar da logo) |
+| Neutro (fundo claro) | Posts alternados com o verde | Sugestão: off-white `#F7F3EA` |
+| Cor dos 3 posts fixados | Terceira cor do feed (o laranja ficou forte demais) | Sugestão: areia/bege terroso `#D9C3A0`, mais calma que o laranja e ligada à terra |
 
 ### Tipografia
 
 - Usadas no carrossel editorial da ureia: **DM Serif Display** (títulos) e **Inter** (texto).
-- Fontes oficiais da marca: **A PREENCHER** (confirmar se ficam essas duas).
+- Padrão adotado para os criativos: **DM Serif Display** nos títulos e **Inter** nos textos (gratuitas,
+  no Google Fonts e no Canva).
 
 ### Feed do Instagram
 
@@ -110,7 +116,7 @@ Profissional, educativo e com autoridade. A Solara ensina o produtor e mostra qu
 
 | Peça | Tamanho |
 | --- | --- |
-| Post / carrossel do feed | 1080 × 1350 (4:5) — **A PREENCHER** (confirmar se é 4:5 ou 1:1) |
+| Post / carrossel do feed | 1080 × 1350 (4:5), que ocupa mais tela no celular que o quadrado |
 | Story e Reels | 1080 × 1920 (9:16) |
 | Imagens do site | Horizontal 4:3 |
 
@@ -119,14 +125,15 @@ Profissional, educativo e com autoridade. A Solara ensina o produtor e mostra qu
 | Produto | Composição | Uso | Como aparece nas imagens | Cuidados |
 | --- | --- | --- | --- | --- |
 | Ureia perolada (prill) | 46% N | Lavoura | **A PREENCHER** | Também vendida em Big Bag |
-| Ureia agrícola | N (granulada) | Lavoura | Trator com distribuidor de dois discos aplicando em lavoura brasileira | Falta foto realista no site |
+| Ureia agrícola | 46% N | Lavoura | Trator com distribuidor de dois discos aplicando em lavoura brasileira | Falta foto realista no site |
 | Ureia pecuária | N, grau ração | Ração animal | **A PREENCHER** | Sempre misturada na ração ou no sal mineral, com orientação de veterinário ou zootecnista. **Nunca** mostrar dada direto ao gado ou pura no cocho |
 | Cloreto de potássio (KCl) | 60% K₂O | Lavoura | Saco branco trançado; grãos de 2 a 4 mm entre avermelhado, rosado e marrom-claro | — |
 | MAP 11-52-00 | 11% N · 52% P₂O₅ | Lavoura | **A PREENCHER** | — |
-| Sulfato de amônio | N + S | Lavoura | Cristais brancos ou off-white, parecidos com açúcar cristal grosso; saco branco trançado | **A PREENCHER**: confirmar que é sulfato de amônio |
-| Fertilizantes NPK | Fórmulas variadas | Lavoura | **A PREENCHER** | **A PREENCHER**: quais fórmulas são vendidas |
+| Sulfato de amônio | 21% N · 24% S | Lavoura | Cristais brancos ou off-white, parecidos com açúcar cristal grosso; saco branco trançado | Menor perda de nitrogênio por volatilização (como diz o site) |
+| Fertilizantes NPK | Sob consulta | Lavoura | **A PREENCHER** | No site aparecem como "sob consulta". Não citar fórmulas específicas até haver uma lista |
 
-Embalagens disponíveis (sacaria 50 kg, Big Bag, granel): **A PREENCHER** por produto.
+Embalagens: a ureia perolada também sai em Big Bag. Demais embalagens por produto (saco 50 kg, Big Bag,
+granel): **A PREENCHER**. Até lá, não prometer embalagem específica nos criativos.
 
 ## 6. Criativos já feitos
 
@@ -189,7 +196,8 @@ Formato [4:3 horizontal | 4:5 vertical | 9:16 vertical].
 - **Números de resultado sem fonte.** A copy dos 12 posts tem exemplos inventados ("95% de absorção",
   "+32% de produtividade", "reduz custos em 23%"). Não publique nenhum deles.
 - **Serviços não confirmados:** consultoria gratuita, análise de solo gratuita, laudos ou
-  certificações, "logística própria".
+  certificações, "logística própria" (o site não afirma frota própria; use "Do porto até a sua
+  lavoura" sem dizer quem transporta).
 - **Ureia pecuária** sendo dada direto ao gado ou despejada pura no cocho.
 - Texto ou logo gerados pela IA dentro da foto.
 
@@ -199,11 +207,12 @@ Cole o texto abaixo no campo **Contexto** do site (https://nossoemporio01-maker.
 use com `--contexto` na linha de comando:
 
 ```
-Marca: Solara Fertilizantes (Curitiba/PR), comércio de fertilizantes e transporte.
-Produtos: ureia perolada 46% N, ureia agrícola, ureia pecuária (sempre misturada na ração ou sal mineral, nunca dada pura ao gado), cloreto de potássio KCl 60% K2O (grão avermelhado/rosado), MAP 11-52-00, sulfato de amônio, NPK.
+Marca: Solara Fertilizantes (Curitiba/PR, desde 2025), comércio de fertilizantes e transporte. Atende PR, SP, MS e MT.
+Slogan: "Onde o sol encontra a terra, nasce a colheita."
+Produtos: ureia perolada 46% N, ureia agrícola, ureia pecuária (sempre misturada na ração ou sal mineral, nunca dada pura ao gado), cloreto de potássio KCl 60% K2O (grão avermelhado/rosado), MAP 11-52-00, sulfato de amônio 21% N 24% S, NPK sob consulta.
 Público: produtores rurais, pecuaristas, gestores agrícolas e revendas.
 Tom: profissional, educativo, de autoridade; textos curtos e diretos, sem exagero.
-Cores: verde (principal), laranja (destaque), marrom (apoio). Logo: sol com raios e uma seta.
+Cores: verde #1F5E3B (principal), laranja (destaque), marrom (apoio), fundo claro #F7F3EA. Fontes: DM Serif Display (títulos) e Inter (texto). Logo: sol com raios e uma seta.
 Imagens: fotografia documental realista, luz natural, cenário agrícola brasileiro, sem texto nem logo dentro da imagem, nada de render 3D.
 CTA: "Peça sua cotação" — WhatsApp (41) 99810-3880 — @solarafertilizantes.
 Frases aprovadas: "Fertilizante de qualidade, do galpão até a sua lavoura"; "Do porto até a sua lavoura".
@@ -212,15 +221,16 @@ Proibido: números de produtividade/economia sem fonte, prometer consultoria ou 
 
 ## 9. Pendências
 
-- [ ] CNPJ
-- [ ] Códigos hex do verde, laranja, marrom e do neutro
-- [ ] Cor dos 3 posts fixados (menos chamativa que o laranja)
-- [ ] Fontes oficiais da marca
-- [ ] Slogan oficial
-- [ ] Região de atendimento e diferenciais confirmados
-- [ ] Confirmar que "Sulfato" é sulfato de amônio
-- [ ] Listar as fórmulas de NPK vendidas
-- [ ] Embalagens disponíveis por produto
-- [ ] Confirmar se a entrega é feita pela própria Solara ("logística própria")
-- [ ] Salvar logos em `solara/logo/` e vídeos em `solara/videos/`
+Resolvido em 06/11/2026 com o site oficial: CNPJ, região, fundação, diferenciais, slogan, verde
+`#1F5E3B`, sulfato de amônio (21% N · 24% S), NPK "sob consulta" e "logística própria" (não afirmar).
+Fontes, formato do feed e cores do neutro e dos fixados foram definidos como padrão sugerido.
+
+Falta o Andre:
+
+- [ ] Hex exato do laranja e do marrom (dá para tirar da logo em PNG)
+- [ ] Aprovar ou trocar as sugestões: neutro `#F7F3EA` e fixados `#D9C3A0`
+- [ ] Fórmulas de NPK vendidas
+- [ ] Embalagens por produto (saco 50 kg, Big Bag, granel)
+- [ ] Culturas e porte dos clientes principais
+- [ ] Enviar as logos e vídeos para salvar em `solara/logo/` e `solara/videos/`
 - [ ] Foto realista da ureia agrícola para o site
