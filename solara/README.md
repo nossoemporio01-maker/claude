@@ -77,23 +77,33 @@ Profissional, educativo e com autoridade. A Solara ensina o produtor e mostra qu
 
 ### Logo
 
-![Logo Solara](logo/solara-logo.jpg)
+![Logo Solara](logo/solara-logo.svg)
 
 - Desenho: sol laranja com raios dourados, um broto verde no centro e uma seta marrom (o caminho da
   terra) subindo para a direita. Abaixo, "SOLARA" em verde escuro e a razão social em letras menores.
   Nos vídeos, os raios giram e a seta serve de transição.
-- Versões existentes: logo completa e símbolo isolado, ambos sem fundo (PNG normal e 2x).
-- Arquivo neste repositório: [`solara/logo/solara-logo.jpg`](logo/solara-logo.jpg) (fundo branco).
-  As versões PNG sem fundo (logo completa e símbolo) ainda não estão aqui: **A PREENCHER**.
+- Arquivos neste repositório:
+  - [`solara-logo.svg`](logo/solara-logo.svg): **logo oficial em vetor**, fundo transparente, símbolo +
+    "SOLARA" (sem a linha da razão social). Use esta sempre que possível; aumenta sem perder qualidade.
+  - [`solara-logo.png`](logo/solara-logo.png): a mesma logo em PNG transparente, 1400 × 1156, para
+    Canva e redes sociais.
+  - [`solara-logo.jpg`](logo/solara-logo.jpg): versão antiga, com a razão social e fundo branco.
+- Os espaços brancos entre os raios são transparentes: em fundo escuro, eles mostram a cor do fundo.
+  Prefira aplicar a logo sobre branco, off-white ou verde.
+- Símbolo isolado (sem o nome): **A PREENCHER** (dá para recortar do SVG, grupo `simbolo`).
 
 ### Cores
 
 | Cor | Uso | Hex |
 | --- | --- | --- |
-| Verde | Principal: fundos e títulos | `#125838` (logo) · `#1F5E3B` (variação usada no site) |
-| Laranja | Destaque: sol, bordas, faixas de transição | `#E86E12` |
-| Amarelo dourado | Raios do sol, detalhes e ícones | `#F09E0E` |
-| Marrom | Apoio, ligado à terra (a seta da logo) | `#633D1D` |
+| Verde | Principal: fundos e títulos (nome SOLARA) | `#14593A` · `#1F5E3B` (variação usada no site) |
+| Laranja | Destaque: sol, bordas, faixas de transição | `#E25E19` (base do sol) · `#F29618` (meio) |
+| Amarelo dourado | Topo do sol, detalhes e ícones | `#F7B21E` |
+| Marrom | Apoio, ligado à terra (a seta/solo da logo) | `#4F3017` · degradê `#3A220E` → `#7A4A22` |
+| Verde folha | Folhas e detalhes de natureza | `#2A7A3F` → `#11502E` |
+
+Degradês da logo: sol `#F7B21E` → `#F29618` → `#E25E19`; solo `#3A220E` → `#4F3017` → `#7A4A22`;
+folha `#2A7A3F` → `#11502E`.
 | Neutro (fundo claro) | Posts alternados com o verde | Sugestão: off-white `#F7F3EA` |
 | Cor dos 3 posts fixados | Terceira cor do feed (o laranja ficou forte demais) | Sugestão: areia/bege terroso `#D9C3A0`, mais calma que o laranja e ligada à terra |
 
@@ -218,7 +228,7 @@ Slogan: "Onde o sol encontra a terra, nasce a colheita."
 Produtos: ureia perolada 46% N, ureia agrícola, ureia pecuária (sempre misturada na ração ou sal mineral, nunca dada pura ao gado), cloreto de potássio KCl 60% K2O (grão avermelhado/rosado), MAP 11-52-00, sulfato de amônio 21% N 24% S, NPK sob consulta.
 Público: produtores rurais, pecuaristas, gestores agrícolas e revendas.
 Tom: profissional, educativo, de autoridade; textos curtos e diretos, sem exagero.
-Cores: verde #125838 (principal), laranja #E86E12 e amarelo dourado #F09E0E (destaque), marrom #633D1D (apoio), fundo claro #F7F3EA. Fontes: DM Serif Display (títulos) e Inter (texto). Logo: sol laranja com raios dourados, broto verde e seta marrom.
+Cores: verde #14593A (principal), laranja #E25E19 e amarelo dourado #F7B21E (destaque, degradê do sol), marrom #4F3017 (apoio), fundo claro #F7F3EA. Fontes: DM Serif Display (títulos) e Inter (texto). Logo: sol laranja com raios dourados, broto verde e seta marrom.
 Imagens: fotografia documental realista, luz natural, cenário agrícola brasileiro, sem texto nem logo dentro da imagem, nada de render 3D.
 CTA: "Peça sua cotação" — WhatsApp (41) 99810-3880 — @solarafertilizantes.
 Frases aprovadas: "Fertilizante de qualidade, do galpão até a sua lavoura"; "Do porto até a sua lavoura".
@@ -227,7 +237,7 @@ Proibido: números de produtividade/economia sem fonte, prometer consultoria ou 
 
 ## 9. Pendências
 
-Cores tiradas da logo (medidas no arquivo, podem variar 1 ou 2 tons do original vetorial).
+Cores oficiais tiradas do arquivo vetorial da logo (SVG).
 Resolvido em 06/11/2026 com o site oficial: CNPJ, região, fundação, diferenciais, slogan, verde
 `#1F5E3B`, sulfato de amônio (21% N · 24% S), NPK "sob consulta" e "logística própria" (não afirmar).
 Fontes, formato do feed e cores do neutro e dos fixados foram definidos como padrão sugerido.
@@ -238,5 +248,5 @@ Falta o Andre:
 - [ ] Fórmulas de NPK vendidas
 - [ ] Embalagens por produto (saco 50 kg, Big Bag, granel)
 - [ ] Culturas e porte dos clientes principais
-- [ ] Enviar a logo em PNG sem fundo (e o símbolo isolado) e os vídeos, para salvar em `solara/logo/` e `solara/videos/`
+- [ ] Enviar os vídeos para salvar em `solara/videos/` (ou guardar os links)
 - [ ] Foto realista da ureia agrícola para o site
